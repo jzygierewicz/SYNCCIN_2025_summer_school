@@ -332,7 +332,7 @@ def mvar_plot(onDiag, offDiag, f, xlab, ylab, ChanNames, Top_title, scale='linea
                 ax.set_ylabel(f"{ylab}{ChanNames[i]}")
 
     axs[0, 0].set_title(Top_title)
-    plt.tight_layout()
+    #plt.tight_layout()
 
 def mvar_plot_dense(onDiag, offDiag, f, xlab, ylab,ChanNames , Top_title, scale='linear'):
     """
@@ -413,7 +413,7 @@ def mvar_plot_dense(onDiag, offDiag, f, xlab, ylab,ChanNames , Top_title, scale=
         axs[0, 0].set_title(Top_title)
     else:
         axs.set_title(Top_title)
-    plt.tight_layout()
+    #plt.tight_layout()
 
 def mvar_criterion(dat, max_p, crit_type='AIC', do_plot=False):
     """
