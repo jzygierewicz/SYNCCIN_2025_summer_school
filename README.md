@@ -18,23 +18,52 @@ This repository contains interactive Jupyter notebooks for analyzing EEG connect
 
 **Focus**: Advanced connectivity analysis using Multivariate Autoregressive modeling and Directed Transfer Function
 
+### 3. Bivariate vs. Multivariate DTF Comparison
+**File**: `5_channels_bivariate_multivariate_MVAR.ipynb`
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/5_channels_bivariate_multivariate_MVAR.ipynb)
+
+**Focus**: Demonstrates differences between bivariate and multivariate connectivity approaches using 5-channel simulation
+
+### 4. Frequency-Selective DTF Analysis
+**File**: `7_channels_bivariate_multivariate_MVAR.ipynb`
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/7_channels_bivariate_multivariate_MVAR.ipynb)
+
+**Focus**: Frequency selectivity of DTF using 7-channel simulation with alpha rhythm transmission
+
+### 5. EEG Reference Effects on DTF
+**File**: `DTF_EEG_reference.ipynb`
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/DTF_EEG_reference.ipynb)
+
+**Focus**: Real EEG data analysis comparing linked ears vs. common average reference effects on DTF
+
 ### 📋 **Repository Contents**
 
 #### **Interactive Notebooks**
 - **`3_channels_correlations.ipynb`** - Cross-correlation and delay analysis with interactive visualizations
 - **`3_channels_MVAR.ipynb`** - MVAR modeling, spectral analysis, and DTF computation
+- **`5_channels_bivariate_multivariate_MVAR.ipynb`** - Comparison of bivariate vs. multivariate connectivity approaches
+- **`7_channels_bivariate_multivariate_MVAR.ipynb`** - Frequency-selective DTF analysis with alpha rhythm simulation
+- **`DTF_EEG_reference.ipynb`** - Real EEG data analysis with reference electrode comparison
 
 #### **Data Files**
 - **`simulated_3_channels.joblib`** - Simulated 3-channel EEG data with known connectivity structure
+- **`simulated_7_channels.joblib`** - Simulated 7-channel EEG data with alpha rhythm transmission
 - **`EEG_alpha.joblib`** - Real EEG data with alpha rhythm for validation
 
 #### **Python Modules**
 - **`mtmvar.py`** - MVAR analysis functions (model estimation, transfer functions, visualization)
 - **`utils.py`** - Utility functions for data handling and exploration
+- **`prepare_3channels_simulation.py`** - Script to generate 3-channel simulation data
+- **`prepare_7channels_simulation.py`** - Script to generate 7-channel simulation data
 
 #### **Documentation & Visualizations**
 - **`README.md`** - This comprehensive guide
-- **`3chan_sim.png`** - Connectivity scheme visualization
+- **`3chan_sim.png`** - 3-channel connectivity scheme visualization
+- **`5chan_sim.png`** - 5-channel connectivity scheme visualization  
+- **`7chan_sim.png`** - 7-channel connectivity scheme visualization
 
 
 ## 📚 **Learning Objectives & Analysis Workflows**
@@ -173,7 +202,10 @@ The notebooks provide a foundation for exploring more advanced topics:
 ### **Quick Access Links:**
 - 🔗 **Correlations Notebook**: [Direct Colab Link](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/3_channels_correlations.ipynb)
 - 🔗 **MVAR Notebook**: [Direct Colab Link](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/3_channels_MVAR.ipynb)
-- 📁 **Repository**: [GitHub Repository](https://github.com/jzygierewicz/SYNCCIN_2025_summer_school)
+- � **5-Channel Comparison**: [Direct Colab Link](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/5_channels_bivariate_multivariate_MVAR.ipynb)
+- 🔗 **7-Channel Frequency Analysis**: [Direct Colab Link](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/7_channels_bivariate_multivariate_MVAR.ipynb)
+- 🔗 **EEG Reference Analysis**: [Direct Colab Link](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/DTF_EEG_reference.ipynb)
+- �📁 **Repository**: [GitHub Repository](https://github.com/jzygierewicz/SYNCCIN_2025_summer_school)
 
 ### **Citation:**
 If you use these materials in your research or teaching, please cite:
