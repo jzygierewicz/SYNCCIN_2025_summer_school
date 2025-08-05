@@ -128,7 +128,7 @@ def mvar_H(Ar, f, Fs):
     return H, A_out
 
 
-def bivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
+def bivariate_spectra(signals, f, Fs, max_p, p_opt = None, crit_type='AIC'):
     """
     Compute the bivariate spectra for each pair of channels in signals.
     Parameters:
@@ -140,6 +140,8 @@ def bivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
         Sampling frequency.
     max_p : int
         Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
     crit_type : str
         Criterion type for model order selection.   
     Returns:
@@ -153,8 +155,12 @@ def bivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
         for ch2 in range(ch1+1,N_chan):
             x = np.vstack((signals[ch1,:],
                            signals[ch2,:]))
-            crit, p_range, p_opt = mvar_criterion(x, max_p, crit_type, False)
-            print('Optimal model order for channel pair: ', str(ch1), ' and ', str(ch2), ' p = ', str(p_opt))
+            if p_opt is None:
+                _, _, p_opt = mvar_criterion(x, max_p, crit_type, False)
+                print('Optimal model order for channel pair: ', str(ch1), ' and ', str(ch2), ' p = ', str(p_opt))   
+            else:
+                print('Using provided model order: p = ', str(p_opt))   
+            # Estimate AR coefficients and residual variance
             Ar, V = AR_coeff(x, p_opt)
             H, _ = mvar_H(Ar, f, Fs)
             S_2chan = np.zeros((2,2, N_f), dtype=np.complex128) #initialize the bivariate spectrum for the pair of channels
@@ -166,7 +172,7 @@ def bivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
             S_bivariate[ch2,ch1,:] = S_2chan[1,0,:]
     return S_bivariate
 
-def multivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
+def multivariate_spectra(signals, f, Fs, max_p, p_opt = None, crit_type='AIC'):
     """
     Compute the multivariate spectra for all channels in signals.
     
@@ -179,6 +185,8 @@ def multivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
         Sampling frequency.
     max_p : int
         Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
     crit_type : str
         Criterion type for model order selection.
     
@@ -187,8 +195,12 @@ def multivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
         Multivariate spectra of shape (N_chan, N_chan, N_f).
     """
     x = signals
-    crit, p_range, p_opt = mvar_criterion(x, max_p, crit_type, True)
-    print('Optimal model order for all channels: p = ', str(p_opt))
+    if p_opt is None:
+        _, _, p_opt = mvar_criterion(x, max_p, crit_type, True)
+        print('Optimal model order for all channels: p = ', str(p_opt))
+    else:
+        print('Using provided model order: p = ', str(p_opt))
+    # Estimate AR coefficients and residual variance
     Ar, V = AR_coeff(x, p_opt)
     H, _ = mvar_H(Ar, f, Fs)
     N_chan = x.shape[0]
@@ -259,6 +271,9 @@ def DTF_multivariate(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
     """
     if p_opt is None:
         _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
+        print('Optimal model order for all channels: p = ', str(p_opt))
+    else:
+        print('Using provided model order: p = ', str(p_opt))
     Ar, _ = AR_coeff(signals, p_opt)
     H, _ = mvar_H(Ar, f, Fs)
     DTF = np.abs(H)**2
