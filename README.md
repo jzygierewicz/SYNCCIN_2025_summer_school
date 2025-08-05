@@ -70,44 +70,9 @@ Real EEG data analysis comparing linked ears vs. common average reference effect
 3. Execute cells sequentially and explore the interactive visualizations
 4. Work through notebooks in order: correlations → MVAR → comparisons → real data
 
-## Methodological Coverage
-
-**Basic Methods (Correlations)**
-- Cross-correlation analysis and time delay estimation
-- Network visualization of connectivity patterns
-
-**Advanced Methods (MVAR/DTF)**  
-- Multivariate Autoregressive modeling
-- Model order selection using information criteria
-- Directed Transfer Function for frequency-domain connectivity
-- Bivariate vs. multivariate comparison
-
-## Educational Content
-
-Each notebook includes:
-- Theoretical background and mathematical foundations
-- Method comparisons and interpretation guidelines
-- Best practices and limitations discussion
-- Interactive exercises with real and simulated data
-
-## Key Methodological Considerations
-
-**Cross-Correlation Limitations:**
-- Cannot distinguish direct from indirect connections
-- Doesn't account for multivariate effects
-- May show spurious connections due to common sources
-
-**MVAR/DTF Advantages:**
-- Multivariate perspective accounting for all channels
-- Better at revealing direct connectivity
-- Frequency-specific analysis capabilities
-- Directional information quantification
-
 ## Technical Requirements
 
 - No local installation needed (runs entirely in Google Colab)
-- Automatic dependency management
-- Cross-platform compatibility
 - Cloud-based data access
 
 ---
@@ -118,13 +83,6 @@ Each notebook includes:
 **Author**: Jarosław Żygierewicz  
 **Institution**: University of Warsaw  
 **Event**: SYNCCIN 2025 Summer School
-
-**Direct Links:**
-- [Correlations Notebook](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/3_channels_correlations.ipynb)
-- [MVAR Notebook](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/3_channels_MVAR.ipynb)
-- [5-Channel Comparison](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/5_channels_bivariate_multivariate_MVAR.ipynb)
-- [7-Channel Frequency Analysis](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/7_channels_bivariate_multivariate_MVAR.ipynb)
-- [EEG Reference Analysis](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/DTF_EEG_reference.ipynb)
 
 **Citation:**
 ```
