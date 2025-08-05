@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy.signal as signal
 import matplotlib.pyplot as plt
+import networkx as nx
 
 def countCorr(x, ip, iwhat):
     '''
@@ -127,9 +128,144 @@ def mvar_H(Ar, f, Fs):
     return H, A_out
 
 
+def bivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
+    """
+    Compute the bivariate spectra for each pair of channels in signals.
+    Parameters:
+    signals : np.ndarray
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    crit_type : str
+        Criterion type for model order selection.   
+    Returns:
+    np.ndarray
+        Bivariate spectra of shape (N_chan, N_chan, N_f).
+    """
+    N_chan = signals.shape[0]
+    N_f = f.shape[0]
+    S_bivariate = np.zeros((N_chan,N_chan, N_f), dtype=np.complex128   ) #initialize the bivariate spectrum
+    for ch1 in range(N_chan):
+        for ch2 in range(ch1+1,N_chan):
+            x = np.vstack((signals[ch1,:],
+                           signals[ch2,:]))
+            crit, p_range, p_opt = mvar_criterion(x, max_p, crit_type, False)
+            print('Optimal model order for channel pair: ', str(ch1), ' and ', str(ch2), ' p = ', str(p_opt))
+            Ar, V = AR_coeff(x, p_opt)
+            H, _ = mvar_H(Ar, f, Fs)
+            S_2chan = np.zeros((2,2, N_f), dtype=np.complex128) #initialize the bivariate spectrum for the pair of channels
+            for fi in range(N_f): #compute spectrum for the pair ch1, ch2
+                S_2chan[:,:,fi] = H[:,:,fi].dot(V.dot(H[:,:,fi].T))
+            S_bivariate[ch1,ch1,:] = S_2chan[0,0,:]
+            S_bivariate[ch2,ch2,:] = S_2chan[1,1,:]
+            S_bivariate[ch1,ch2,:] = S_2chan[0,1,:]
+            S_bivariate[ch2,ch1,:] = S_2chan[1,0,:]
+    return S_bivariate
 
+def multivariate_spectra(signals, f, Fs, max_p, crit_type='AIC'):
+    """
+    Compute the multivariate spectra for all channels in signals.
+    
+    Parameters:
+    signals : np.ndarray
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    crit_type : str
+        Criterion type for model order selection.
+    
+    Returns:
+    np.ndarray
+        Multivariate spectra of shape (N_chan, N_chan, N_f).
+    """
+    x = signals
+    crit, p_range, p_opt = mvar_criterion(x, max_p, crit_type, True)
+    print('Optimal model order for all channels: p = ', str(p_opt))
+    Ar, V = AR_coeff(x, p_opt)
+    H, _ = mvar_H(Ar, f, Fs)
+    N_chan = x.shape[0]
+    N_f = f.shape[0]
+    S_multivariate = np.zeros((N_chan,N_chan, N_f), dtype=np.complex128) #initialize the multivariate spectrum
+    for fi in range(N_f): #compute spectrum for all channels
+        S_multivariate[:,:,fi] = H[:,:,fi].dot(V.dot(H[:,:,fi].T))      
+    
+    return S_multivariate
 
+def DTF_bivariate(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
+    """
+    Compute the directed transfer function (DTF) for the bivariate case.
+    Parameters:
+    signals : np.ndarray
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
+    crit_type : str
+        Criterion type for model order selection.
+    Returns:
+    np.ndarray
+        Bivariate DTF of shape (N_chan, N_chan, N_f).
+    """
+    N_chan = signals.shape[0]
+    N_f = f.shape[0]
+    DTF_bivariate = np.zeros((N_chan,N_chan, N_f),dtype=np.complex128) #initialize the bivariate DTF; 
+    for ch1 in range(N_chan):
+        for ch2 in range(ch1+1,N_chan):
+            x = np.vstack( (signals[ch1,:],
+                            signals[ch2,:]) )  
+            if p_opt is None:  
+                _, _, p_opt = mvar_criterion(x, max_p, crit_type, False)
+            Ar, _ = AR_coeff(x, p_opt)
+            H, _ = mvar_H(Ar, f, Fs)
+            
+            DTF_2chan = np.abs(H)**2
+            
+            DTF_bivariate[ch1,ch2,:] = DTF_2chan[0,1,:]
+            DTF_bivariate[ch2,ch1,:] = DTF_2chan[1,0,:]
+    return DTF_bivariate
 
+def DTF_multivariate(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
+    """
+    Compute the directed transfer function (DTF) for the multivariate case.
+    Parameters:
+    signals : np.ndarray    
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
+    crit_type : str
+        Criterion type for model order selection.
+    Returns:
+    np.ndarray
+        Multivariate DTF of shape (N_chan, N_chan, N_f).
+    """
+    if p_opt is None:
+        _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
+    Ar, _ = AR_coeff(signals, p_opt)
+    H, _ = mvar_H(Ar, f, Fs)
+    DTF = np.abs(H)**2
+
+    return DTF
+
+# Plotting function for graph visualization
 def mvar_plot(onDiag, offDiag, f, xlab, ylab, ChanNames, Top_title, scale='linear'):
     """
     Plot MVAR results using bar plots for diagonal (auto) and off-diagonal (cross) terms.
@@ -353,5 +489,54 @@ def mvar_spectra(H, V, f  ):
         S_multivariate[:,:,fi] = H[:,:,fi].dot(V.dot(H[:,:,fi].T)) 
     return S_multivariate, f
 
-     
+# Compute linewidths
+def get_linewidths(G):
+    weights = np.array([d['weight'] for u, v, d in G.edges(data=True)])
+    return 5 * weights / weights.max()
 
+def graph_plot(connectivity_matrix, ax, f, f_range, ChanNames, title):
+    
+    """
+    Plot connectivity matrix as a graph.
+    Parameters:
+    connectivity_matrix : np.ndarray, shape (N_chan, N_chan, N_f)
+        Connectivity matrix with complex values. e.g. Directed Transfer Function (DTF).
+    ax : matplotlib.axes.Axes
+        Axes on which to plot the graph.
+    f : np.ndarray
+        Frequency vector.
+    f_range : tuple
+        Frequency range for the plot (min, max).
+    ChanNames : list
+        List of channel names.
+    title : str
+        Title for the plot. 
+    Returns:
+    G : networkx.DiGraph
+        Directed graph created from the connectivity matrix.
+
+    """
+    # Convert complex DTF to real for visualization
+    connectivity = connectivity_matrix.real
+    # Sum over the frequencies in f_range and transpose to match the directionality of edges (from row to column) in the directed graph
+    # find the indices of the frequency range
+    f_indices = np.where((f >= f_range[0]) & (f <= f_range[1]))[0]
+    if len(f_indices) == 0:
+        raise ValueError("No frequencies found in the specified range.")
+    adj  = np.sum(connectivity[:,:,f_indices], axis=2).T
+    # Remove self-loops by setting diagonal to zero
+    np.fill_diagonal(adj, 0)
+    # Create directed graphs
+    G = nx.from_numpy_array(adj, create_using=nx.DiGraph)
+    # Plotting
+    pos = nx.spring_layout(G)  # use the same layout for both
+    # Map ChanNames to node labels
+    labels = {i: ChanNames[i] for i in range(len(ChanNames))}
+    nx.draw(G, pos, ax=ax, with_labels=True, labels=labels, arrows=True,
+            width=get_linewidths(G), node_size=500,
+            arrowstyle='->',
+            arrowsize=35,
+            connectionstyle='arc3,rad=0.2')
+    ax.set_title(title)
+
+    return G
