@@ -9,3 +9,4 @@ def describe_dict(d):
             print(f"{key}: dict, keys={list(value.keys())}")
         else:
             print(f"{key}: {type(value).__name__}, value={value}")
+
