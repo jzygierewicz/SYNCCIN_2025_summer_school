@@ -1,3 +1,31 @@
+"""
+MVAR Analysis Functions for EEG Connectivity Analysis
+
+This module contains functions for Multivariate Autoregressive (MVAR) modeling
+and Directed Transfer Function (DTF) analysis of EEG data.
+
+ACKNOWLEDGMENTS:
+Some functions in this module are based on algorithms and code originally 
+developed by Prof. Maciej Kamiński from the Department of Biomedical Physics 
+at the University of Warsaw. These contributions form part of the theoretical 
+and methodological foundation for MVAR-based connectivity analysis.
+
+Original MVAR methodology references:
+- Kamiński, M., & Blinowska, K. J. (1991). A new method of the description 
+  of the information flow in the brain structures. Biological Cybernetics, 
+  65(3), 203-210.
+- Kamiński, M., Ding, M., Truccolo, W. A., & Bressler, S. L. (2001). 
+  Evaluating causal relations in neural systems: Granger causality, directed 
+  transfer function and statistical assessment of significance. Biological 
+  Cybernetics, 85(2), 145-157.
+
+Modified and adapted for educational purposes by:
+Jarosław Żygierewicz, University of Warsaw
+SYNCCIN 2025 Summer School
+
+License: Educational use
+"""
+
 import numpy as np
 import pandas as pd
 import scipy.signal as signal
