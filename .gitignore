@@ -1,0 +1,7 @@
+W_009/
+W_010/
+*.raw
+*.mat
+__pycache__/
+.DS_Store
+*.html
