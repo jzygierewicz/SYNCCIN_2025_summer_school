@@ -354,7 +354,7 @@ def mvar_plot(onDiag, offDiag, f, xlab, ylab, ChanNames, Top_title, scale='linea
     MaxonDiag = np.max(onDiag)
     MaxoffDiag = np.max(offDiag)
 
-    fig, axs = plt.subplots(N_chan, N_chan, figsize=(10,10), constrained_layout=True)
+    fig, axs = plt.subplots(N_chan, N_chan, figsize=(6,6), constrained_layout=True)
     for i in range(N_chan):
         for j in range(N_chan):
             ax = axs[i, j] if N_chan > 1 else axs
@@ -583,3 +583,4 @@ def graph_plot(connectivity_matrix, ax, f, f_range, ChanNames, title):
     ax.set_title(title)
 
     return G
+
