@@ -414,7 +414,7 @@ def plot_EEG_channels(filtered_data, events, selected_channels, title='Filtered 
     ax.set_yticks(yticks)
     ax.set_yticklabels(yticklabels)
     ax.set_title(title)
-    ax.set_xlabel('Samples')
+    ax.set_xlabel('Time [s]')
     ax.set_ylabel('Channels')
     plt.tight_layout()   
     plt.legend()
@@ -510,7 +510,7 @@ def plot_EEG_channels_pl(filtered_data, events, selected_channels, title='Filter
             x=0.5,
             font=dict(size=16)
         ),
-        xaxis_title="Time (samples)",
+        xaxis_title="Time [s]",
         yaxis_title="EEG Channels",
         yaxis=dict(
             tickvals=yticks,
@@ -605,9 +605,9 @@ def overlay_EEG_channels_hyperscanning(data_ch, data_cg, all_channels, event, se
         if ch in all_channels:
             #idx_cg = filtered_data['channels'][ch]
             ax[1].plot(data_cg[i, :], label=ch)
-    ax[0].set_ylabel('Amplitude (uV)')
-    ax[1].set_ylabel('Amplitude (uV)')
-    ax[1].set_xlabel('Samples (after decimation)')
+    ax[0].set_ylabel('Amplitude [uV]')
+    ax[1].set_ylabel('Amplitude [uV]')
+    ax[1].set_xlabel('Samples')
     ax[0].legend(loc='upper right')
     ax[1].legend(loc='upper right')
     plt.suptitle(title)
@@ -707,7 +707,7 @@ def overlay_EEG_channels_hyperscanning_pl(data_ch, data_cg, all_channels, event,
     )
     
     # Update axes labels
-    fig.update_xaxes(title_text="Samples (after decimation)", row=2, col=1)
+    fig.update_xaxes(title_text="Samples", row=2, col=1)
     fig.update_yaxes(title_text="Amplitude (µV)", row=1, col=1)
     fig.update_yaxes(title_text="Amplitude (µV)", row=2, col=1)
     
