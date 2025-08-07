@@ -39,6 +39,13 @@ Frequency selectivity of DTF using 7-channel simulation with alpha rhythm transm
 
 Real EEG data analysis comparing linked ears vs. common average reference effects on DTF.
 
+### 6. Hyperscanning EEG-HRV Connectivity Analysis
+**File**: `Warsaw_pilot_EEG_hyperscanning_analysis.ipynb`
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jzygierewicz/SYNCCIN_2025_summer_school/blob/main/Warsaw_pilot_EEG_hyperscanning_analysis.ipynb)
+
+Real hyperscanning data from child-caregiver dyads with DTF analysis of HRV coupling, EEG connectivity, and multimodal EEG-HRV interactions.
+
 ## Repository Contents
 
 **Interactive Notebooks**
@@ -47,6 +54,7 @@ Real EEG data analysis comparing linked ears vs. common average reference effect
 - `5_channels_bivariate_multivariate_MVAR.ipynb` - Bivariate vs. multivariate connectivity comparison
 - `7_channels_bivariate_multivariate_MVAR.ipynb` - Frequency-selective DTF analysis
 - `DTF_EEG_reference.ipynb` - Real EEG data analysis with reference electrode comparison
+- `Warsaw_pilot_EEG_hyperscanning_analysis.ipynb` - Hyperscanning EEG-HRV connectivity analysis
 
 **Data Files**
 - `simulated_3_channels.joblib` - 3-channel EEG simulation with known connectivity
@@ -55,7 +63,8 @@ Real EEG data analysis comparing linked ears vs. common average reference effect
 
 **Python Modules**
 - `mtmvar.py` - MVAR analysis functions
-- `utils.py` - Utility functions for data handling
+- `utils.py` - Utility functions for data handling and visualization
+- `warsaw_pilot_data.py` - Hyperscanning analysis pipeline
 - `prepare_3channels_simulation.py` - Generate 3-channel simulation data
 - `prepare_7channels_simulation.py` - Generate 7-channel simulation data
 
