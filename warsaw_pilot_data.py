@@ -5,31 +5,35 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from scipy.signal import butter, iirnotch, filtfilt, sosfiltfilt, decimate, hilbert, welch
 from scipy.stats import zscore  # type: ignore
-from mtmvar import mvar_criterion, AR_coeff, mvar_H, mvar_plot,  mvar_plot_dense, mvar_spectra, DTF_multivariate, multivariate_spectra # type: ignore
+from mtmvar import mvar_criterion, AR_coeff, mvar_H, mvar_plot,  mvar_plot_dense, mvar_spectra, DTF_multivariate, multivariate_spectra, graph_plot # type: ignore
 from utils import load_warsaw_pilot_data, scan_for_events, filter_warsaw_pilot_data, get_IBI_signal_from_ECG_for_selected_event, get_data_for_selected_channel_and_event
 from utils import plot_EEG_channels, plot_EEG_channels_pl, overlay_EEG_channels_hyperscanning_pl, overlay_EEG_channels_hyperscanning
 
 
 if __name__ == "__main__":
-    folder = './W_010/' #'./W_009/'
-    file  =  'W_010.obci'   #'W_009.obci'
+    folder = './W_010/' 
+    file  =  'W_010.obci'  
+    # folder = './W_009/'
+    # file  =  'W_009.obci'
     selected_events = ['Movie_1']# # events to extract data for ; #, 'Movie_2', 'Movie_3', 'Talk_1', 'Talk_2'
 
-    debug_PLOT = False
+    debug_PLOT = True
     HRV_DTF = True # if True, the DTF will be estimated for the IBI signals from the ECG amplifier
     EEG_DTF = True # if True, the DTF will be estimated for the EEG signals from child and caregiver separately
     EEG_HRV_DTF = True
 
     data = load_warsaw_pilot_data(folder, file, plot=False)
-    events = scan_for_events(data, plot = True) #indexes of events in the data, this is done before filtering to avoid artifacts in the diode signal
+    events = scan_for_events(data, plot = False) #indexes of events in the data, this is done before filtering to avoid artifacts in the diode signal
     filtered_data = filter_warsaw_pilot_data(data)
+
+    # First lets examine the data
     if debug_PLOT:
         print("Filtered data shape:", filtered_data['data'].shape)
         print("Filtered EEG channels:", filtered_data['EEG_channels_ch'])
         print("Filtered ECG channels:", filtered_data['EEG_channels_cg'])
         print("Events detected:", events)
 
-        # separately (in subplots) for child and caregiver, plot the filtered ECG and overall it with the interpolated IBI signals, highlithing the events
+        # separately (in subplots) for child and caregiver, plot the filtered ECG and overlay it with the interpolated IBI signals, highlithing the events
 
         fig, ax = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
         # Plot Child ECG on left y-axis
@@ -154,6 +158,7 @@ if __name__ == "__main__":
             # compute and plot spectra of the selected channels using Welch's method
             f_ch, Pxx_ch = welch(data_ch[0, :], fs=filtered_data['Fs_EEG'], nperseg=1024)
             f_cg, Pxx_cg = welch(data_cg[0, :], fs=filtered_data['Fs_EEG'], nperseg=1024)
+            # plot the power spectral density of the child and caregiver Fz channels
             plt.figure(figsize=(12, 6))
             plt.plot(f_ch, Pxx_ch, label='Child Fz channel')
             plt.plot(f_cg, Pxx_cg, label='Caregiver Fz_cg channel')
@@ -238,5 +243,12 @@ if __name__ == "__main__":
             S = multivariate_spectra(DTF_data, f, Fs = filtered_data['Fs_IBI'], max_p = 15, p_opt = None, crit_type='AIC')
             DTF = DTF_multivariate(DTF_data, f, Fs = filtered_data['Fs_IBI'], max_p = 15, p_opt = None, crit_type='AIC')    
             """Let's  plot the results in the table form."""
-            mvar_plot(S, DTF,   f, 'From ', 'To ',['Child IBI', 'Caregiver IBI', 'Child Fz theta amp', 'Caregiver Fz_cg theta amp'],  'DTF '+ event ,'sqrt')
+            ChanNames = ['Ch IBI', 'Cg IBI', 'Ch Fz\n theta amp', 'Cg Fz_cg\n theta amp']
+            mvar_plot(S, DTF,   f, 'From ', 'To ',ChanNames,  'DTF '+ event ,'sqrt')
             plt.show()
+
+            # Finally let's plot the DTF results in the graph form using graph_plot  from mtmvar
+            fig, ax = plt.subplots(figsize=(10, 8))
+            graph_plot(connectivity_matrix = DTF, ax=ax, f=f, f_range=[0.2, 0.6], ChanNames=ChanNames, title='DTF ' + event)
+            plt.show()
+
