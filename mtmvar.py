@@ -6,12 +6,7 @@ and Directed Transfer Function (DTF) analysis of EEG data.
 
 ACKNOWLEDGMENTS:
 Some functions in this module are based on algorithms and code originally 
-developed by Prof. Maciej Kamiński from th    # Normalize DTF to get full-frequency DTF (ffDTF)
-    ffDTF = np.zeros((N_chan,N_chan, N_f))
-    for i in range(N_chan):  # rows
-        for j in range(N_chan):  # columns
-            ffDTF[i,j,:] = DTF[i,j,:] / np.sum(DTF[i,:,:])
-    return ffDTFrtment of Biomedical Physics 
+developed by Prof. Maciej Kamiński from the Department of Biomedical Physics 
 at the University of Warsaw. These contributions form part of the theoretical 
 and methodological foundation for MVAR-based connectivity analysis.
 
@@ -316,7 +311,24 @@ def DTF_multivariate(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
 def ffDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
     """
     Compute the full-frequency directed transfer function (ffDTF) for the multivariate case.
-    The normalization takes into account inflows to channel i in any frequency.
+    
+    The ffDTF modifies the standard DTF normalization to integrate over the entire frequency 
+    range, making cross-frequency comparisons more interpretable. Unlike standard DTF which 
+    normalizes by frequency-specific inflows, ffDTF normalizes by the sum over all frequencies.
+    
+    Mathematical formula:
+    Standard DTF: DTF_ij(f) = |H_ij(f)|² / Σ_k |H_ik(f)|²
+    Full-frequency DTF: ffDTF_ij(f) = |H_ij(f)|² / Σ_f Σ_k |H_ik(f)|²
+    
+    The normalization takes into account inflows to channel i across the entire frequency range,
+    allowing for more meaningful comparison of information flow at different frequencies.
+    
+    Reference:
+    Korzeniewska, A., Mańczak, M., Kamiński, M., Blinowska, K. J., & Kasicki, S. (2003). 
+    Determination of information flow direction among brain structures by a modified directed transfer function (dDTF) method. 
+    Journal of neuroscience methods, 125(1-2), 195-207.
+    https://doi.org/10.1016/S0165-0270(03)00052-9
+    
     Parameters:
     signals : np.ndarray
         Input signals of shape (N_chan, N_samp).
@@ -330,9 +342,10 @@ def ffDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
         Optimal model order. If None, it will be computed.
     crit_type : str
         Criterion type for model order selection.
+        
     Returns:
     np.ndarray
-        full-frequency DTF of shape (N_chan, N_chan, N_f).
+        Full-frequency DTF of shape (N_chan, N_chan, N_f).
     """
     if p_opt is None:
         _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
@@ -349,6 +362,192 @@ def ffDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
         for j in range(N_chan):  # columns
             ffDTF[i,j,:] = DTF[i,j,:] / np.sum(DTF[i,:,:])
     return ffDTF
+
+def partial_coherence(S):
+    """
+    Compute the partial coherence using efficient boolean indexing for minors.
+    
+    Parameters:
+    S : np.ndarray
+        Spectral density matrix of shape (N_chan, N_chan, N_f).
+
+    Returns:
+    np.ndarray
+        Partial coherence of shape (N_chan, N_chan, N_f).
+    """
+    N_chan, _, N_f = S.shape
+    
+    # Compute minors of S using boolean indexing (Method 2)
+    M = np.zeros((N_chan, N_chan, N_f), dtype=np.complex128)
+    
+    for i in range(N_chan):  # rows to delete
+        for j in range(N_chan):  # columns to delete
+            for fi in range(N_f):  # for each frequency
+                # Extract the (N_chan x N_chan) matrix at frequency fi
+                S_freq = S[:, :, fi]
+                
+                # Create minor by deleting row i and column j using boolean indexing
+                if N_chan > 1:  # Only compute minor if matrix is larger than 1x1
+                    # Create boolean masks
+                    row_mask = np.ones(N_chan, dtype=bool)
+                    col_mask = np.ones(N_chan, dtype=bool)
+                    row_mask[i] = False
+                    col_mask[j] = False
+                    
+                    # Extract submatrix using boolean indexing
+                    minor_matrix = S_freq[np.ix_(row_mask, col_mask)]
+                    M[i, j, fi] = np.linalg.det(minor_matrix)
+                else:
+                    M[i, j, fi] = 1.0  # For 1x1 matrix, minor is 1
+    
+    # Compute partial coherence
+    kappa = np.zeros((N_chan, N_chan, N_f), dtype=np.complex128)
+    for i in range(N_chan):
+        for j in range(N_chan):
+            if i != j:  # Only compute for off-diagonal elements
+                # Avoid division by zero
+                denominator = np.sqrt(M[i, i, :] * M[j, j, :])
+                kappa[i, j, :] = np.where(denominator != 0, 
+                                        M[i, j, :] / denominator, 
+                                        0)
+            # Diagonal elements are set to 1 (perfect coherence with itself)
+            else:
+                kappa[i, j, :] = 1.0
+    
+    return kappa
+
+def dDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
+    """
+    Compute the direct directed transfer function (dDTF) for the multivariate case.
+    
+    The dDTF combines DTF with partial coherence to distinguish direct from indirect 
+    connections, filtering out spurious connections that may arise from common inputs
+    or indirect pathways.
+    
+    Mathematical formula:
+    dDTF_ij(f) = DTF_ij(f) × |partial_coherence_ij(f)|
+    
+    Reference:
+    Korzeniewska, A., Mańczak, M., Kamiński, M., Blinowska, K. J., & Kasicki, S. (2003). 
+    Determination of information flow direction among brain structures by a modified 
+    directed transfer function (dDTF) method. Journal of Neuroscience Methods, 125(1-2), 195-207.
+    https://doi.org/10.1016/S0165-0270(03)00052-9
+    
+    Parameters:
+    signals : np.ndarray    
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    p_opt : int, optional
+        Optimal model order (if known).
+    crit_type : str
+        Criterion type for model order selection (e.g., 'AIC', 'BIC').
+        
+    Returns:
+    np.ndarray
+        Direct directed transfer function (dDTF) of shape (N_chan, N_chan, N_f).
+    """
+    if p_opt is None:
+        _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
+        print('Optimal model order for all channels: p = ', str(p_opt))
+    else:
+        print('Using provided model order: p = ', str(p_opt))  
+    # compute spectral density matrix
+    S = multivariate_spectra(signals, f, Fs, max_p, p_opt, crit_type)
+    # Compute partial coherence
+    kappa = partial_coherence(S)
+    # compute the ffDTF
+    ff_DTF = ffDTF(signals, f, Fs, max_p, p_opt, crit_type)
+    # Compute dDTF using the formula: dDTF = ff_DTF * kappa
+    dDTF = ff_DTF * np.abs(kappa)
+
+    return dDTF
+
+def GPDC(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
+    """
+    Compute the generalized partial directed coherence (GPDC) for the multivariate case.
+    
+    GPDC is a frequency-domain measure that quantifies the directed influence of one 
+    signal on another, based on the autoregressive coefficients in the frequency domain.
+    This generalized version addresses the limitations of standard PDC when dealing with 
+    systems that have unbalanced noise variances across channels by incorporating 
+    proper normalization using the noise covariance structure.
+    
+    Mathematical formula:
+    GPDC_ij(f) = |A_ij(f)|/σ_i / sqrt(Σ_k (|A_kj(f)|² / σ²_k))
+
+    Where:
+    - A(f) is the frequency domain AR coefficient matrix (inverse of H)
+    - |A_ij(f)| is the absolute value of the AR coefficient from source channel i to target channel j at frequency f
+    - σ_i is the noise standard deviation for source channel i (sqrt of diagonal elements of noise covariance matrix V)
+    - σ²_k is the noise variance for source channel k (diagonal elements of noise covariance matrix V)
+    
+    This formulation ensures that channels with different noise levels do not 
+    artificially bias connectivity estimates, making GPDC more robust than standard PDC 
+    for practical applications with heterogeneous noise characteristics.
+    
+    References:
+    Original PDC: Baccala, L. A., & Sameshima, K. (2001). Partial directed coherence: a new concept 
+    in neural structure determination. Biological Cybernetics, 84(6), 463-474.
+    https://doi.org/10.1007/PL00007990
+    
+    Generalized PDC: Baccalá, L. A., & Sameshima, K. (2007). Generalized partial directed coherence. 
+    15th International Conference on Digital Signal Processing (DSP 2007), 163-166.
+    https://doi.org/10.1109/ICDSP.2007.4288544
+    
+    Parameters:
+    signals : np.ndarray    
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
+    crit_type : str
+        Criterion type for model order selection.
+        
+    Returns:
+    np.ndarray
+        Generalized partial directed coherence (GPDC) of shape (N_chan, N_chan, N_f).
+    """
+    if p_opt is None:
+        _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
+        print('Optimal model order for all channels: p = ', str(p_opt))
+    else:
+        print('Using provided model order: p = ', str(p_opt))
+    
+    # Estimate AR coefficients and residual variance
+    Ar, V = AR_coeff(signals, p_opt)
+    H, A = mvar_H(Ar, f, Fs)  # A is the frequency domain AR matrix
+    
+    N_chan, _, N_f = A.shape
+    GPDC = np.zeros((N_chan, N_chan, N_f))
+    
+    # Extract noise variances (diagonal of V)
+    sigma_squared = np.diag(V)
+    
+    # Compute GPDC 
+    for i in range(N_chan):  # source
+        for j in range(N_chan):  # target
+            # Numerator: |A_ij(f)| / σ_i
+            numerator = np.abs(A[i, j, :]) / np.sqrt(sigma_squared[i])
+            
+            # Denominator: sqrt(Σ_k (|A_kj(f)|² / σ²_k))
+            denominator = np.sqrt(np.sum(np.abs(A[:, j, :])**2 / sigma_squared[:, np.newaxis], axis=0))
+            
+            # Avoid division by zero
+            GPDC[i, j, :] = np.where(denominator != 0, 
+                                   numerator / denominator, 
+                                   0)
+
+    return GPDC
 
 # Plotting function for graph visualization
 def mvar_plot(onDiag, offDiag, f, xlab, ylab, ChanNames, Top_title, scale='linear'):
