@@ -6,7 +6,12 @@ and Directed Transfer Function (DTF) analysis of EEG data.
 
 ACKNOWLEDGMENTS:
 Some functions in this module are based on algorithms and code originally 
-developed by Prof. Maciej Kamiński from the Department of Biomedical Physics 
+developed by Prof. Maciej Kamiński from th    # Normalize DTF to get full-frequency DTF (ffDTF)
+    ffDTF = np.zeros((N_chan,N_chan, N_f))
+    for i in range(N_chan):  # rows
+        for j in range(N_chan):  # columns
+            ffDTF[i,j,:] = DTF[i,j,:] / np.sum(DTF[i,:,:])
+    return ffDTFrtment of Biomedical Physics 
 at the University of Warsaw. These contributions form part of the theoretical 
 and methodological foundation for MVAR-based connectivity analysis.
 
@@ -342,7 +347,7 @@ def ffDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
     ffDTF = np.zeros((N_chan,N_chan, N_f))
     for i in range(N_chan):  # rows
         for j in range(N_chan):  # columns
-            ffDTF[i,j,:] = DTF[i,j,:] / np.sum(np.sum(DTF[i,:,:], axis=1), axis=2)
+            ffDTF[i,j,:] = DTF[i,j,:] / np.sum(DTF[i,:,:])
     return ffDTF
 
 # Plotting function for graph visualization
