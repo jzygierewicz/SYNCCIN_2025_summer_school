@@ -308,6 +308,43 @@ def DTF_multivariate(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
 
     return DTF
 
+def ffDTF(signals, f, Fs, max_p = 20, p_opt = None, crit_type='AIC'):
+    """
+    Compute the full-frequency directed transfer function (ffDTF) for the multivariate case.
+    The normalization takes into account inflows to channel i in any frequency.
+    Parameters:
+    signals : np.ndarray
+        Input signals of shape (N_chan, N_samp).
+    f : np.ndarray
+        Frequency vector.
+    Fs : float
+        Sampling frequency.
+    max_p : int
+        Maximum model order.
+    p_opt : int or None
+        Optimal model order. If None, it will be computed.
+    crit_type : str
+        Criterion type for model order selection.
+    Returns:
+    np.ndarray
+        full-frequency DTF of shape (N_chan, N_chan, N_f).
+    """
+    if p_opt is None:
+        _, _, p_opt = mvar_criterion(signals, max_p, crit_type, False)
+        print('Optimal model order for all channels: p = ', str(p_opt))
+    else:
+        print('Using provided model order: p = ', str(p_opt))
+    Ar, _ = AR_coeff(signals, p_opt)
+    H, _ = mvar_H(Ar, f, Fs)
+    DTF = np.abs(H)**2
+    N_chan, _, N_f = DTF.shape
+    # Normalize DTF to get full-frequency DTF (ffDTF)
+    ffDTF = np.zeros((N_chan,N_chan, N_f))
+    for i in range(N_chan):  # rows
+        for j in range(N_chan):  # columns
+            ffDTF[i,j,:] = DTF[i,j,:] / np.sum(np.sum(DTF[i,:,:], axis=1), axis=2)
+    return ffDTF
+
 # Plotting function for graph visualization
 def mvar_plot(onDiag, offDiag, f, xlab, ylab, ChanNames, Top_title, scale='linear'):
     """
