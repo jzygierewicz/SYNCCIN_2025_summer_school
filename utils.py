@@ -210,7 +210,7 @@ def get_data_for_selected_channel_and_event(filtered_data, selected_channels, ev
             data_selected[i, :] = filtered_data['data'][idx_ch, start_idx:end_idx]
     return data_selected
 
-def filter_warsaw_pilot_data(data, lowcut=2.0, highcut=40.0, q = 8):
+def filter_warsaw_pilot_data(data, lowcut=4.0, highcut=40.0, q = 8):
 
     '''Filter the Warsaw pilot data using a low, high pas and notch filter.  
         And apply montage to M1 and M2 channels for EEG data.  
@@ -282,8 +282,8 @@ def filter_warsaw_pilot_data(data, lowcut=2.0, highcut=40.0, q = 8):
     EEG_channels_cg = ['Fp1_cg', 'Fp2_cg', 'F7_cg', 'F3_cg', 'Fz_cg', 'F4_cg', 'F8_cg', 'M1_cg', 'T3_cg', 'C3_cg', 'Cz_cg', 'C4_cg', 'T4_cg', 'M2_cg', 'T5_cg', 'P3_cg', 'Pz_cg', 'P4_cg', 'T6_cg', 'O1_cg', 'O2_cg']
    
     # design EEG filters
-    b_low, a_low = butter(2, highcut, btype='low', fs = Fs_EEG)
-    b_high, a_high = butter(2, lowcut, btype='high', fs = Fs_EEG)
+    b_low, a_low = butter(4, highcut, btype='low', fs = Fs_EEG)
+    b_high, a_high = butter(4, lowcut, btype='high', fs = Fs_EEG)
 
     # filter the caregiver EEG data
     for i, ch in enumerate(EEG_channels_cg):
