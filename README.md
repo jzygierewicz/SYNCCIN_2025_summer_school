@@ -86,6 +86,12 @@ Real hyperscanning data from child-caregiver dyads with DTF analysis of HRV coup
 
 ---
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for a full list of contributors.
+
+Want to contribute? Check out [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to add yourself as a contributor.
+
 ## Contact & Support
 
 **Repository**: [SYNCCIN_2025_summer_school](https://github.com/jzygierewicz/SYNCCIN_2025_summer_school)  
